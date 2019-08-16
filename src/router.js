@@ -9,6 +9,7 @@ import Mine from './components/Mine.vue'
 
 var router = new VueRouter({
     routes:[
+        {path:'/',redirect:'/ele'},
         {path:'/ele',component:Ele},
         {path:'/supermarket',component:Supermarket},
         {path:'/order',component:Order},

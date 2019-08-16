@@ -204,47 +204,159 @@
       <h3 style="margin:5px 0">推荐商家</h3>
     </div>
 
-    <div id="sortScreen">综合排序</div>
+    <select v-model="sortSelected" @change="sortByType(sortSelected)">
+      <option value="comprehensive" >综合排序</option>
+      <option value="startDeliveryCheapest" >起送价最低</option>
+      <option value="distanceClosest" >距离最近</option>
+      <option value="deliveryFastest" >配送最快</option>
+      <option value="deliveryCheapest" >配送费最低</option>
+    </select>
 
     <div id="storeList">
       <div class="store" v-for="store in storeList" :key="store.id">
-        <div class="store-left">
-          <img src="../img/lbt4.png" alt />
-        </div>
-        <div class="store-right">
-          <p>{{store.storeName}}<br>
-          星星：{{store.star}} 月售{{store.monthSell}}<br>
-          起送：{{store.startDelivery}}  夜间配送{{store.nightDelivery}}<br>
-          </p>
-          <p>
-            {{store.deliveryTime}}分钟&nbsp;&nbsp;{{store.distance}}km
-          </p>
-        </div>
+        <img src="../img/lbt4.png" alt />
+        <p>
+          {{store.storeName}}
+          <br />
+          星星：{{store.star}} 月售{{store.monthSell}}
+          <br />
+          起送：{{store.startDelivery|intFilter|moneyFilter}} 夜间配送{{store.nightDelivery|oneDecimalFilter|moneyFilter}}
+          <br />
+        </p>
+        <p>{{store.deliveryTime}}分钟&nbsp;&nbsp;{{store.distance|distanceFilter}}</p>
       </div>
     </div>
   </div>
 </template>
 
 <script>
+import { constants } from 'crypto';
 export default {
   data() {
     return {
       value: "",
-      storeList:[]
+      storeList: [],
+      sortSelected:"comprehensive"
     };
   },
 
-  created(){
+  created() {
     this.getStoreData();
   },
-  methods:{
-    getStoreData(){
-      this.axios.get("https://www.easy-mock.com/mock/5d4a5bb7ee89405f39e4eb24/example/storelist").then(res=>{
-        this.storeList = res.data.storeList;
-      })
+  computed: {
+    sortStoreList() {
+      // var storeList = this.storeList;
+      // for (let i = 0; i < storeList.length; i++) {
+      //   for (let j = storeList.length - 1; j > i; j--) {
+      //     if (
+      //       Number(storeList[j].distance) < Number(storeList[j - 1].distance)
+      //     ) {
+      //       var temp = storeList[j];
+      //       storeList[j] = storeList[j - 1];
+      //       storeList[j - 1] = temp;
+      //     }
+      //   }
+      // }
+      // return storeList;
+      // this.storeList = storeList;
     }
-  }
+  },
+  methods: {
+    getStoreData() {
+      this.axios
+        .get(
+          "https://www.easy-mock.com/mock/5d4a5bb7ee89405f39e4eb24/example/storelist"
+        )
+        .then(res => {
 
+          this.storeList = res.data.storeList;
+        });
+    },
+    sortByType(type){
+      console.log(typeof type);
+      console.log(type);
+      switch(type){
+        case 'comprehensive':
+          this.getStoreData();
+          break;
+        case 'startDeliveryCheapest':
+          this.sortByStartDeliveryCheapest();
+          break;
+        case 'distanceClosest':
+          this.sortByDistance();
+          break;
+        case 'deliveryFastest':
+          this.sortByDeliveryFastest();
+          break;
+        case 'deliveryCheapest':
+          this.sortByDeliveryCheapest();
+          break;
+      }
+    },
+    sortByStartDeliveryCheapest(){
+            for (let i = 0; i < this.storeList.length; i++) {
+        for (let j = this.storeList.length - 1; j > i; j--) {
+          if (
+            Number(this.storeList[j].startDelivery) < Number(this.storeList[j - 1].startDelivery)
+          ) {
+            var temp = this.storeList[j];
+            this.$set(this.storeList,j,this.storeList[j-1]);
+            this.$set(this.storeList,j-1,temp);
+          }
+        }
+      }
+    },
+    sortByDistance() {
+      console.log(this.storeList);
+      for (let i = 0; i < this.storeList.length; i++) {
+        for (let j = this.storeList.length - 1; j > i; j--) {
+          if (
+            Number(this.storeList[j].distance) < Number(this.storeList[j - 1].distance)
+          ) {
+            // var temp = storeList[j];
+            // storeList[j] = storeList[j - 1];
+            // storeList[j - 1] = temp;
+            var temp = this.storeList[j];
+            this.$set(this.storeList,j,this.storeList[j-1]);
+            this.$set(this.storeList,j-1,temp);
+          }
+        }
+      }
+      // console.log(storeList)
+      // var a =[1,2,3];
+      // var b =[10,9,8]
+
+      // this.$set(a,0,4);
+      // console.log(a);
+      // console.log(b);
+    },
+   sortByDeliveryFastest(){
+            for (let i = 0; i < this.storeList.length; i++) {
+        for (let j = this.storeList.length - 1; j > i; j--) {
+          if (
+            Number(this.storeList[j].deliveryTime) < Number(this.storeList[j - 1].deliveryTime)
+          ) {
+            var temp = this.storeList[j];
+            this.$set(this.storeList,j,this.storeList[j-1]);
+            this.$set(this.storeList,j-1,temp);
+          }
+        }
+      }
+    },
+   sortByDeliveryCheapest(){
+            for (let i = 0; i < this.storeList.length; i++) {
+        for (let j = this.storeList.length - 1; j > i; j--) {
+          if (
+            Number(this.storeList[j].nightDelivery) < Number(this.storeList[j - 1].nightDelivery)
+          ) {
+            var temp = this.storeList[j];
+            this.$set(this.storeList,j,this.storeList[j-1]);
+            this.$set(this.storeList,j-1,temp);
+          }
+        }
+      }
+    },
+  }
 };
 </script>
 
@@ -358,41 +470,36 @@ export default {
 }
 
 #storeList {
-  .store{
-    margin:0;
-    padding:0;
+  .store {
+    margin: 0;
+    padding: 0;
     position: relative;
-    height:70px;
-  .store-left{
-    float: left;
-    width: 70px;
-    height:70px;
-    img{
-      margin:4px 0 0 4px;
-      width:60px;
-      height:60px;
-      
-    }
-  }
-  .store-right{
-    width: 285px;
-    height:70px;
-    p{
-      position:absolute;
-      width:285px;
-      left:70px;
-      font-size: 14px;
-      margin: 0;
-    }
-    p:nth-child(2){
+    height: 70px;
+    img {
       position: absolute;
-      width: 100px;
-      left:250px;
-      bottom:10px;
+      left: 10px;
+      top: 10px;
+      width: 60px;
+      height: 60px;
     }
-    float: left;
-  }
-  }
+    p {
+      margin: 0;
+      height: 0;
+      line-height: 20px;
+      font-size: 10px;
+    }
+    :nth-child(2) {
+      margin-top: 5px;
+      position: absolute;
+      left: 80px;
+    }
 
+    :last-child {
+      margin-top: 5px;
+      position: absolute;
+      right: 0px;
+      top: 40px;
+    }
+  }
 }
 </style>
